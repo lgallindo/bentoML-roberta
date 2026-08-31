@@ -1,0 +1,12 @@
+# Ambiente virtual local (criado por `uv sync`)
+.venv/
+
+# Bytecode Python
+__pycache__/
+*.py[cod]
+
+# Artefatos temporarios das receitas do justfile
+tmp/
+
+# Bentos construidos localmente
+bentos/

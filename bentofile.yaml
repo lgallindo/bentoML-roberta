@@ -1,0 +1,10 @@
+service: "service:QAService"
+labels:
+  project: qa-demo
+include:
+  - "*.py"
+python:
+  packages:
+    - bentoml
+    - "transformers<5"
+    - torch
