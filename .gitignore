@@ -5,8 +5,8 @@
 __pycache__/
 *.py[cod]
 
-# Artefatos temporarios das receitas do justfile
+# Arquivos temporários criados pelas receitas do justfile
 tmp/
 
-# Bentos construidos localmente
+# Bentos construídos localmente
 bentos/

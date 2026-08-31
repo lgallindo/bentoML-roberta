@@ -1,0 +1,51 @@
+# =============================================================================
+# Variante BÁSICA -- a API recebe pergunta E contexto
+#
+#     POST /answer   {"question": "...", "context": "..."}
+#
+# É a única das três em que o contexto viaja na requisição. Nas outras duas o
+# contexto já está carregado dentro do serviço, e mandar "context" não faria
+# sentido nenhum.
+# =============================================================================
+VARIANTE := "básico"
+
+import '../comum.just'
+
+# Mostra as receitas desta variante quando você roda só `just`
+default:
+	@just --list
+
+# Consulta de exemplo ao endpoint /answer, com jq para formatar a resposta
+curl-qa: _servidor-vivo
+	#!/usr/bin/env bash
+	# O `set -o pipefail` é o que faz o erro do curl chegar até o just. Sem
+	# ele, quem decide se a receita deu certo é o jq (o último da fila), e o
+	# jq acha ótimo receber uma resposta vazia.
+	set -o pipefail
+	echo "Modelo desta variante: pierreguillou/bert-base-cased-squad-v1.1-portuguese"
+	echo "Perguntando para {{BASE_URL}}/answer ..."
+	curl -sS --fail-with-body -m 120 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"question":"Qual é a cor do céu?","context":"O céu é geralmente azul durante o dia devido à dispersão da luz."}' \
+		{{BASE_URL}}/answer | jq
+
+# A mesma consulta sem o jq, para ver o JSON cru que o servidor devolve
+curl-qa-raw: _servidor-vivo
+	@echo "Mesma chamada, sem jq (resposta crua)"
+	curl -sS --fail-with-body -m 120 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"question":"Qual é a cor do céu?","context":"O céu é geralmente azul durante o dia devido à dispersão da luz."}' \
+		{{BASE_URL}}/answer
+	@echo ""
+
+# Mesma consulta, porém lendo o corpo da requisição de um arquivo .json
+curl-qa-file: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	mkdir -p tmp
+	printf '%s\n' '{"question":"Quem escreveu \"Dom Casmurro\"?","context":"Machado de Assis é um dos maiores escritores brasileiros. Ele escreveu Dom Casmurro em 1899."}' > tmp/payload.json
+	echo "Enviando tmp/payload.json para {{BASE_URL}}/answer"
+	curl -sS --fail-with-body -m 120 \
+		-X POST -H 'Content-Type: application/json' \
+		--data-binary @tmp/payload.json \
+		{{BASE_URL}}/answer | jq

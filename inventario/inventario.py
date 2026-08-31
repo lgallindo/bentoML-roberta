@@ -1,9 +1,11 @@
-"""Render a pt-BR inventory CSV into prose suitable for extractive QA context.
+"""Transforma o CSV de estoque em prosa apropriada para QA extrativo.
 
-Extractive QA models (BERTimbau, XLM-R) are fine-tuned on running prose, not on
-tables. Pasting raw CSV rows into `context` produces bad spans. Each row is
-turned into a few short sentences that each repeat the product name, so a span
-stays findable even when chunking splits the row from its neighbours.
+Modelos de QA extrativo (BERTimbau, XLM-R) são treinados em texto corrido, não
+em tabelas. Colar as linhas cruas do CSV dentro do `context` produz respostas
+ruins: o modelo não entende que a coluna "preco_brl" se refere ao produto que
+está três colunas atrás. Aqui cada linha vira algumas frases curtas, e cada
+frase repete o nome do produto -- assim o trecho continua encontrável mesmo
+quando o modelo fatia o contexto e separa uma linha das suas vizinhas.
 """
 
 import csv
@@ -55,11 +57,17 @@ def linha_para_texto(row: dict) -> str:
 
 
 def carregar_estoque(csv_path: str | Path) -> str:
-    """CSV -> one prose paragraph per product, blank line between products."""
+    """CSV -> um parágrafo de prosa por produto, com linha em branco entre eles."""
     with open(csv_path, encoding="utf-8", newline="") as fh:
         blocos = [linha_para_texto(row) for row in csv.DictReader(fh)]
     return unicodedata.normalize("NFC", "\n\n".join(blocos))
 
 
 if __name__ == "__main__":
-    print(carregar_estoque("estoque_marketplace.csv")[:600])
+    # Mostra o começo do contexto gerado, para conferir a formatação sem
+    # precisar carregar o modelo nem subir servidor.
+    print(
+        carregar_estoque(Path(__file__).parent / "context" / "estoque_marketplace.csv")[
+            :600
+        ]
+    )

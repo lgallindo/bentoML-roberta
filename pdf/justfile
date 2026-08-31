@@ -1,0 +1,61 @@
+# =============================================================================
+# Variante PDF -- a API recebe SÓ a pergunta
+#
+#     POST /answer   {"question": "..."}
+#
+# O contexto (os dois PDFs) é lido uma única vez, quando o serviço sobe, e
+# fica guardado dentro dele. Mandar "context" na requisição não faria sentido
+# e o servidor simplesmente ignoraria o campo.
+#
+# Esta variante existe para MOSTRAR UM PROBLEMA acontecendo, não para servir
+# de exemplo do que fazer. Leia o comentário no topo de service.py.
+# =============================================================================
+VARIANTE := "pdf"
+
+import '../comum.just'
+
+# Mostra as receitas desta variante quando você roda só `just`
+default:
+	@just --list
+
+# Uma pergunta que esta variante ACERTA (leva de 15 a 19 segundos)
+curl-qa: _servidor-vivo
+	#!/usr/bin/env bash
+	# O `set -o pipefail` é o que faz o erro do curl chegar até o just. Sem
+	# ele, quem decide se a receita deu certo é o jq (o último da fila), e o
+	# jq acha ótimo receber uma resposta vazia.
+	set -o pipefail
+	echo "Pergunta: O que é o SAC?"
+	echo "Paciência: cada pergunta desta variante leva de 15 a 19 segundos."
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"question":"O que é o SAC?"}' \
+		{{BASE_URL}}/answer | jq
+
+# As duas perguntas que esta variante ERRA -- é a demonstração do problema
+curl-falhas: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	echo "Estas duas perguntas mostram por que um contexto grande e bagunçado"
+	echo "não funciona. Cada uma leva de 15 a 19 segundos."
+	echo ""
+
+	echo '1) "Qual é o prazo para resposta de reclamação no SAC?"'
+	echo '   Esperado: sete dias. O Decreto diz isso, com todas as letras,'
+	echo '   duas vezes. Veja o que volta:'
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"question":"Qual é o prazo para resposta de reclamação no SAC?"}' \
+		{{BASE_URL}}/answer | jq
+	echo ""
+
+	echo '2) "Quantos dias tem o consumidor para cancelar o serviço?"'
+	echo '   A resposta que volta é um pedaço da apostila do Sebrae, que não'
+	echo '   tem nada a ver com a pergunta:'
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"question":"Quantos dias tem o consumidor para cancelar o serviço?"}' \
+		{{BASE_URL}}/answer | jq
+	echo ""
+	echo "Conclusão: o modelo não está com defeito. O contexto é que está"
+	echo "grande demais e misturado demais. Falta a etapa de BUSCA."

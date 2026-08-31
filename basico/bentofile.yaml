@@ -1,0 +1,27 @@
+# Receita de empacotamento da variante básica.
+# Construir com:  just basico build   (roda dentro desta pasta)
+service: "service:QAService"
+
+# Sem um nome próprio, as três variantes virariam versões de um mesmo bento
+# chamado "qa_service" e se misturariam na listagem do `just list`.
+name: qa-basico
+
+labels:
+  project: qa-demo
+  variante: basico
+
+# Só o que esta variante precisa. Ela não lê PDF nem CSV.
+include:
+  - "service.py"
+
+python:
+  packages:
+    - bentoml
+    - "transformers<5"
+    - torch
+    - "protobuf>=5.0.0"
+  # Puxa o torch sem CUDA. O torch padrão arrasta ~3,4 GB de bibliotecas da
+  # NVIDIA que não servem para nada em máquina sem placa de vídeo -- e que
+  # entrariam na imagem Docker do mesmo jeito.
+  extra_index_url:
+    - "https://download.pytorch.org/whl/cpu"

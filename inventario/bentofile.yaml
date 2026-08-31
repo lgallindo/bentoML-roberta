@@ -1,0 +1,24 @@
+# Receita de empacotamento da variante de inventário.
+# Construir com:  just inventario build   (roda dentro desta pasta)
+service: "service:QAService"
+name: qa-inventario
+
+labels:
+  project: qa-demo
+  variante: inventario
+
+# O CSV e o módulo que o converte em prosa precisam entrar no pacote.
+include:
+  - "service.py"
+  - "inventario.py"
+  - "context/estoque_marketplace.csv"
+
+python:
+  packages:
+    - bentoml
+    - "transformers<5"
+    - torch
+    - "sentencepiece>=0.2.0"  # o xlm-roberta não tokeniza sem isto
+    - "protobuf>=5.0.0"
+  extra_index_url:
+    - "https://download.pytorch.org/whl/cpu"

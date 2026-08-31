@@ -1,0 +1,50 @@
+# =============================================================================
+# Variante INVENTÁRIO -- a API recebe SÓ a pergunta
+#
+#     POST /answer   {"question": "..."}
+#
+# O contexto (25 produtos vindos de um CSV, convertidos em frases) é montado
+# uma única vez, quando o serviço sobe. Mandar "context" na requisição não
+# faria sentido e o servidor simplesmente ignoraria o campo.
+# =============================================================================
+VARIANTE := "inventário"
+
+import '../comum.just'
+
+# Mostra as receitas desta variante quando você roda só `just`
+default:
+	@just --list
+
+# Quatro perguntas sobre o estoque, todas respondidas em 2 a 4 segundos
+curl-qa: _servidor-vivo
+	#!/usr/bin/env bash
+	# O `set -o pipefail` é o que faz o erro do curl chegar até o just. Sem
+	# ele, quem decide se a receita deu certo é o jq (o último da fila), e o
+	# jq acha ótimo receber uma resposta vazia.
+	set -o pipefail
+	for pergunta in \
+		"Qual é o preço do Fone de ouvido Bluetooth?" \
+		"Quantas unidades de Fone de ouvido Bluetooth existem em estoque?" \
+		"Qual é o prazo de envio da Cafeteira elétrica?" \
+		"Quem vende o Fone de ouvido Bluetooth?"
+	do
+		echo "Pergunta: $pergunta"
+		curl -sS --fail-with-body -m 120 \
+			-X POST -H 'Content-Type: application/json' \
+			-d "$(jq -nc --arg q "$pergunta" '{question:$q}')" \
+			{{BASE_URL}}/answer | jq -c
+		echo ""
+	done
+
+# Uma pergunta que o modelo NÃO tem como responder -- e admite isso
+curl-nao-sei: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	echo 'Pergunta: "Qual é a capital da França?"'
+	echo 'Não há nada sobre a França no estoque. O esperado é answer vazio ("").'
+	echo 'Um modelo que inventasse uma resposta aqui seria bem mais perigoso'
+	echo 'do que um que admite não saber.'
+	curl -sS --fail-with-body -m 120 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"question":"Qual é a capital da França?"}' \
+		{{BASE_URL}}/answer | jq

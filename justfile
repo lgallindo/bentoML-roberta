@@ -1,83 +1,71 @@
-# Justfile for BentoML tasks
-# SERVICE variable points to the BentoML service declaration in service.py
-SERVICE := "service:QAService"
-SERVICE_PDF := "service_pdf:QAService"
-SERVICE_INVENTARIO := "service_inventario:QAService"
+# =============================================================================
+# Projeto: três serviços de perguntas-e-respostas (QA) com BentoML
+#
+# As três variantes moram na raiz do projeto, em pastas independentes.
+# Todas usam o MESMO ambiente Python (o .venv da raiz), então basta um
+# `just sync` para as três.
+#
+#     basico/        pergunta + contexto vêm na requisição
+#     pdf/           contexto = todos os PDFs em context/ (dá errado, de propósito)
+#     inventario/    contexto = 25 produtos de um CSV (dá certo)
+#
+# Como chamar uma receita de uma variante -- o nome da pasta vem primeiro:
+#
+#     just basico serve            sobe a variante básica
+#     just pdf curl-falhas         demonstra o problema da variante de PDF
+#     just inventario curl-qa      faz quatro perguntas sobre o estoque
+#
+# Para ver as receitas de uma variante:
+#
+#     just --list basico
+#
+# Para rodar duas variantes ao mesmo tempo, mude a porta pelo ambiente:
+#
+#     just basico serve                 (fica na 3000)
+#     PORT=3001 just inventario serve   (vai para a 3001)
+# =============================================================================
 
-# Default task
-default: serve
+mod basico 'basico'
+mod pdf 'pdf'
+mod inventario 'inventario'
 
-# Serve the original BentoML service (development)
-serve:
-	@echo "Serving BentoML service (SERVICE={{SERVICE}})"
-	BENTOML_LOG_LEVEL=info uv run --no-active bentoml serve {{SERVICE}}
+# Mostra as três variantes e as receitas gerais
+default:
+	@just --list
 
-# Serve the PDF-based variant
-serve-pdf:
-	@echo "Serving PDF-based BentoML service (SERVICE={{SERVICE_PDF}})"
-	BENTOML_LOG_LEVEL=info uv run --no-active bentoml serve {{SERVICE_PDF}}
-
-# Serve the inventory-based variant
-serve-inventario:
-	@echo "Serving inventory-based BentoML service (SERVICE={{SERVICE_INVENTARIO}})"
-	BENTOML_LOG_LEVEL=info uv run --no-active bentoml serve {{SERVICE_INVENTARIO}}
-
-# Build a bento bundle (requires a valid BentoML build configuration)
-build:
-	@echo "Building Bento bundle"
-	uv run --no-active bentoml build
-
-# List Bento artifacts
-list:
-	uv run --no-active bentoml list
-
-# Install/refresh the local .venv from pyproject.toml + uv.lock
+# Instalar/atualizar o .venv a partir do pyproject.toml + uv.lock
 sync:
 	uv sync --no-active
 
-# Run the Python module directly (useful for quick debug; may not start Bento server)
-run:
-	@echo "Running service.py directly"
-	uv run --no-active python service.py
+# Listar todos os bentos já empacotados, das três variantes
+list:
+	uv run --no-active bentoml list
 
-# ---------- Documentação: Swagger & curl para o modelo de QA ----------
-# Observação: por padrão o `bentoml serve` roda em http://127.0.0.1:3000
-# Swagger UI: / (raiz)   |   OpenAPI JSON: /docs.json
+# Ver quais variantes estão de pé e em que portas
+ports:
+	#!/usr/bin/env bash
+	linhas=$(ss -ltnp 'sport >= :3000 and sport <= :3005' 2>/dev/null | tail -n +2)
+	if [ -z "$linhas" ]; then
+		echo "Nenhum servidor de pé nas portas 3000-3005."
+	else
+		echo "Servidores de pé nas portas 3000-3005:"
+		echo "$linhas" | sed 's/^/  /'
+	fi
 
-# Abrir a Swagger UI (navegador) para inspecionar a API e testar interativamente
-swagger:
-	@echo "Abra a Swagger UI em http://127.0.0.1:3000/"
-	@echo "(rodar 'just serve' em outro terminal se o servidor não estiver ativo)"
-	@echo "Tentando abrir no navegador padrão..."
-	xdg-open http://127.0.0.1:3000/ >/dev/null 2>&1 || true
-
-# Exemplo curl: consulta direta ao endpoint /answer usando JSON
-# Formato do payload (exemplo em pt_BR):
-# { "question": "Qual é a cor do céu?", "context": "O céu é geralmente azul durante o dia devido à dispersão da luz." }
-curl-qa:
-	@echo "Exemplo: consulta QA para deepset/roberta-base-squad2 (endpoint: /answer)"
-	@echo "Certifique-se de que o servidor esteja em http://127.0.0.1:3000 (rodar 'just serve')"
-	curl -s -X POST \
-		-H 'Content-Type: application/json' \
-		-d '{"question":"Qual é a cor do céu?","context":"O céu é geralmente azul durante o dia devido à dispersão da luz."}' \
-		http://127.0.0.1:3000/answer | jq || true
-
-# Variante: sem jq (raw)
-curl-qa-raw:
-	@echo "Mesma chamada sem jq (output bruto)"
-	curl -s -X POST \
-		-H 'Content-Type: application/json' \
-		-d '{"question":"Qual é a cor do céu?","context":"O céu é geralmente azul durante o dia devido à dispersão da luz."}' \
-		http://127.0.0.1:3000/answer || true
-
-# Exemplo de arquivo JSON para reuso (gera um arquivo tmp/payload.json e usa curl)
-curl-qa-file:
-	@mkdir -p tmp
-	@printf '%s\n' '{"question":"Quem escreveu \"Dom Casmurro\"?","context":"Machado de Assis é um dos maiores escritores brasileiros. Ele escreveu Dom Casmurro em 1899."}' > tmp/payload.json
-	@echo "Enviando tmp/payload.json para http://127.0.0.1:3000/answer"
-	curl -s -X POST -H 'Content-Type: application/json' --data-binary @tmp/payload.json http://127.0.0.1:3000/answer | jq || true
-
-# Nota: se o endpoint expõe outro path (p.ex. /api/answer), ajuste as URLs acima.
-# Para inspecionar a especificação OpenAPI em JSON: curl http://127.0.0.1:3000/docs.json
-
-# ---------------------------------------------------------------------
+# Derrubar TODAS as variantes que estiverem de pé nas portas 3000-3005
+stop-all:
+	#!/usr/bin/env bash
+	encontrou=0
+	for porta in 3000 3001 3002 3003 3004 3005; do
+		if ss -ltn "sport = :$porta" | grep -q LISTEN; then
+			echo "Encerrando o servidor da porta $porta..."
+			fuser -k -TERM $porta/tcp >/dev/null 2>&1 || true
+			encontrou=1
+		fi
+	done
+	if [ "$encontrou" = "0" ]; then
+		echo "Nada para encerrar."
+	else
+		sleep 2
+		echo "Portas liberadas. (Os processos supervisores somem sozinhos em alguns segundos.)"
+	fi
