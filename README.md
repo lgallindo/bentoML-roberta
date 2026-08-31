@@ -11,7 +11,27 @@ em 3 segundos e a outra erra em 18.
 
 ---
 
-## O `just`, em um parágrafo
+## O que é o `uv`
+
+O `uv` cuida do Python e das bibliotecas. Se você já penou com `pip`, `venv` e
+`python -m venv`, ele faz o serviço dos três de uma vez só. Ele lê dois
+arquivos que já estão na raiz do projeto — o `pyproject.toml`, que diz quais
+bibliotecas são necessárias, e o `uv.lock`, que fixa a versão exata de cada
+uma — e monta a pasta `.venv/` com esse conteúdo. Como o `uv.lock` fixa as
+versões, a turma inteira acaba com o mesmo ambiente, e o clássico "mas na
+minha máquina funciona" perde a graça. Ele também baixa o próprio Python 3.13
+que este projeto pede, sem mexer no Python que já existe na sua máquina, então
+não tem problema se a sua for outra versão.
+
+Uma consequência prática: você **não precisa "ativar" ambiente nenhum**. As
+receitas chamam `uv run`, que entra no `.venv/` do projeto sozinho, a cada
+comando. É daí que vem o `--no-active` que você vai ver espalhado pelos
+justfiles: ele manda o `uv` ignorar qualquer ambiente que você por acaso tenha
+ativado na mão e usar sempre o `.venv/` deste projeto.
+
+---
+
+## O que é o `just`
 
 Todos os comandos deste projeto começam com a palavra `just`. O `just` é um
 programinha que guarda comandos longos debaixo de nomes curtos: em vez de você
