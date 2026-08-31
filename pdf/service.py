@@ -43,7 +43,7 @@ MODEL_NAME = "deepset/xlm-roberta-base-squad2"
 # (retrieval) do RAG, Retrieval-Augmented Generation.
 #
 # Esta variante existe DE PROPÓSITO para mostrar o problema acontecendo.
-# Compare com variantes/inventario/, que é o extremo oposto: contexto pequeno
+# Compare com inventario/, que é o extremo oposto: contexto pequeno
 # (8.355 letras) e já organizado em frases curtas.
 #
 # REPARE NA ASSINATURA DE answer(): aqui ela recebe SÓ `question`. O contexto

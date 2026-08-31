@@ -17,8 +17,8 @@ MODEL_NAME = "pierreguillou/bert-base-cased-squad-v1.1-portuguese"
 # para ele. As outras duas variantes existem justamente para mostrar o que
 # acontece quando o contexto NÃO vem pronto de fora:
 #
-#     variantes/pdf/         -- contexto gigante e bagunçado (dá errado)
-#     variantes/inventario/  -- contexto pequeno e organizado (dá certo)
+#     pdf/                   -- contexto gigante e bagunçado (dá errado)
+#     inventario/            -- contexto pequeno e organizado (dá certo)
 #
 # Modelos alternativos para experimentar (troque MODEL_NAME acima):
 #   "deepset/roberta-base-squad2"

@@ -1,7 +1,7 @@
 # =============================================================================
 # Receitas compartilhadas pelas três variantes.
 #
-# Cada pasta em variantes/ tem seu próprio justfile, que começa com
+# Cada pasta de variante tem seu próprio justfile, que começa com
 #     import '../comum.just'
 # e acrescenta só as receitas de curl próprias da sua API. Tudo que é igual
 # nas três (subir, parar, empacotar, abrir o Swagger) mora aqui.

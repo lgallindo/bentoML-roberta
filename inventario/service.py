@@ -14,7 +14,7 @@ MODEL_NAME = "deepset/xlm-roberta-base-squad2"
 # 2 a 4 segundos, em vez de errar em 15 a 19. A diferença não está no modelo:
 # está no tamanho e no formato do contexto.
 #
-#   variantes/pdf/  -> 43.069 letras de dois documentos colados, sem tratamento
+#   pdf/            -> 43.069 letras de dois documentos colados, sem tratamento
 #   aqui            ->  8.355 letras, 25 produtos, cada um em 4 frases curtas
 #
 # O arquivo inventario.py faz o trabalho pesado: transforma cada linha do CSV
