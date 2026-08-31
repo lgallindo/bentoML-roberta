@@ -11,22 +11,49 @@ em 3 segundos e a outra erra em 18.
 
 ---
 
-## O que você vai precisar
+## O `just`, em um parágrafo
 
-| Ferramenta | Para quê | Como conferir |
-|---|---|---|
-| [uv](https://docs.astral.sh/uv/) | instala o Python e as bibliotecas | `uv --version` |
-| [just](https://just.systems) ≥ 1.31 | roda os comandos deste projeto | `just --version` |
-| `curl` e `jq` | fazem e formatam as chamadas à API | `curl -V` e `jq --version` |
-
-Só Linux (ou WSL): duas receitas usam `ss` e `fuser` para cuidar das portas.
-
-**Espaço em disco:** cerca de 5 GB de bibliotecas (`.venv/`) mais 1 a 2 GB de
-modelos baixados na primeira execução. Não comece isso numa conexão ruim.
+Todos os comandos deste projeto começam com a palavra `just`. O `just` é um
+programinha que guarda comandos longos debaixo de nomes curtos: em vez de você
+decorar e digitar `uv run --no-active bentoml serve service:QAService --port
+3000`, você digita `just basico serve`. Esses apelidos ficam escritos num
+arquivo de texto comum chamado **justfile**, que você pode abrir e ler —
+este projeto tem um na raiz e mais um dentro de cada variante. Cada apelido
+é chamado de **receita**. O `just` não faz parte do Python nem do BentoML: é
+uma ferramenta separada, e existe só para você não precisar decorar comando
+nenhum. A qualquer momento, rode `just` sozinho para ver as receitas
+disponíveis.
 
 ---
 
 ## Instalação
+
+Primeiro as três ferramentas. Elas se instalam uma vez só na sua máquina, não
+uma vez por projeto — se você já tiver alguma, pule.
+
+```bash
+# 1. uv: instala o Python e as bibliotecas do projeto
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 2. just: o executor de receitas explicado acima
+uv tool install rust-just
+
+# 3. jq: formata o JSON que a API devolve, para dar para ler
+sudo apt install jq
+```
+
+Não é engano: o pacote se chama `rust-just`, mas o comando que ele instala se
+chama `just`. Feche e reabra o terminal, e confira as três de uma vez:
+
+```bash
+uv --version && just --version && jq --version
+```
+
+O `just` precisa ser 1.31 ou mais novo. Evite instalar por `apt`: em várias
+distribuições a versão de lá é velha demais para os módulos que este projeto
+usa.
+
+Agora sim, **dentro da pasta do projeto**, monte o ambiente:
 
 ```bash
 just sync
@@ -34,6 +61,11 @@ just sync
 
 Isso cria a pasta `.venv/` com Python 3.13 e tudo que as três variantes usam.
 Roda uma vez e serve para as três.
+
+**Duas ressalvas.** Só funciona em Linux ou WSL: duas receitas usam `ss` e
+`fuser` para cuidar das portas. E reserve espaço em disco — são cerca de 5 GB
+de bibliotecas em `.venv/`, mais 1 a 2 GB de modelos baixados na primeira
+execução.
 
 ---
 
