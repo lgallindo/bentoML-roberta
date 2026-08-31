@@ -107,13 +107,17 @@ resposta no fim, está tudo funcionando e você pode seguir.
 
 | pasta | o que você manda na requisição | tamanho do contexto | tempo por pergunta | resultado |
 |---|---|---|---|---|
-| `basico/` | a pergunta **e** o contexto | você escolhe (curtinho) | menos de 1 s | acerta |
-| `pdf/` | só a pergunta | 43.069 caracteres (2 PDFs colados) | 15 a 19 s | **erra — de propósito** |
-| `inventario/` | só a pergunta | 8.355 caracteres (25 produtos de um CSV) | 2 a 4 s | acerta |
+| [`basico/`](basico/README.md) | a pergunta **e** o contexto | você escolhe (curtinho) | menos de 1 s | acerta |
+| [`pdf/`](pdf/README.md) | só a pergunta | 43.069 caracteres (2 PDFs colados) | 15 a 19 s | **erra — de propósito** |
+| [`inventario/`](inventario/README.md) | só a pergunta | 8.355 caracteres (25 produtos de um CSV) | 2 a 4 s | acerta |
 
 Nas variantes `pdf/` e `inventario/` o contexto é carregado **uma vez**, quando
 o serviço sobe, e fica guardado dentro dele. Por isso a requisição leva só a
 pergunta.
+
+**Cada pasta tem o seu próprio README**, com a lista de arquivos, a API, as
+receitas e experimentos para tentar: [`basico/`](basico/README.md) ·
+[`pdf/`](pdf/README.md) · [`inventario/`](inventario/README.md).
 
 Modelos usados:
 
@@ -163,13 +167,13 @@ Cada variante também tem uma página de documentação interativa (Swagger UI) 
 
 ## O que cada variante ensina
 
-### `basico/` — o caso fácil
+### [`basico/`](basico/README.md) — o caso fácil
 
 Você entrega a pergunta e o parágrafo onde está a resposta. O modelo só precisa
 grifar. Responde rápido e quase sempre acerta, porque **você** já fez o trabalho
 difícil de escolher o texto certo.
 
-### `pdf/` — o problema
+### [`pdf/`](pdf/README.md) — o problema
 
 O serviço cola dois documentos que não têm nada a ver um com o outro (o Decreto
 do SAC e uma apostila do Sebrae) e manda os 43 mil caracteres para o modelo a
@@ -189,7 +193,7 @@ O modelo não está com defeito. Está faltando alguém **escolher a página cer
 antes** de chamar o modelo. Esse passo que falta tem nome: é a etapa de **busca
 (*retrieval*)** do RAG.
 
-### `inventario/` — a solução
+### [`inventario/`](inventario/README.md) — a solução
 
 Mesmo modelo da variante anterior, resultado oposto. A diferença está no arquivo
 `inventario/inventario.py`, que transforma cada linha do CSV em frases de
@@ -254,6 +258,7 @@ PORT=3001 just inventario serve    # vai para a 3001
 
 | Arquivo | O que tem dentro |
 |---|---|
+| [`basico/README.md`](basico/README.md) · [`pdf/`](pdf/README.md) · [`inventario/`](inventario/README.md) | o README de cada variante, com detalhes e experimentos |
 | `basico/service.py` | o serviço mais simples, ~15 linhas de código útil |
 | `pdf/service.py` | comentário longo no topo explicando por que esta variante erra |
 | `inventario/inventario.py` | a conversão de CSV em prosa — o coração da solução |
