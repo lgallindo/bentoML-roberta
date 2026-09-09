@@ -1,0 +1,23 @@
+# Receita de empacotamento da variante Falcon 90M.
+# Construir com:  just falcon90m build
+service: "service:QAService"
+
+name: qa-falcon90m
+
+labels:
+  project: qa-demo
+  variante: falcon90m
+
+include:
+  - "service.py"
+
+python:
+  packages:
+    - bentoml
+    - "transformers<5"
+    - torch
+    - "protobuf>=5.0.0"
+  # Puxa o torch sem CUDA. O torch padrão arrasta ~3,4 GB de bibliotecas da
+  # NVIDIA que não servem para nada em máquina sem placa de vídeo.
+  extra_index_url:
+    - "https://download.pytorch.org/whl/cpu"
