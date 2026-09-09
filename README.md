@@ -119,10 +119,29 @@ pergunta.
 receitas e experimentos para tentar: [`basico/`](basico/README.md) ·
 [`pdf/`](pdf/README.md) · [`inventario/`](inventario/README.md).
 
+### Aprofundamento: como o modelo lê um texto que não cabe nele
+
+Três variantes extras, em sequência, para quem já entendeu as de cima. Todas
+usam o mesmo modelo e o mesmo CSV da variante `inventario/` — o que muda é o
+quanto elas deixam você enxergar do trabalho feito por baixo.
+
+| pasta | o que acrescenta |
+|---|---|
+| [`inventario_stride/`](inventario_stride/README.md) | escreve no código o tamanho da janela e a sobreposição — e mostra que esses números já eram os padrões |
+| [`inventario_stride_usage/`](inventario_stride_usage/README.md) | mede o custo de **uma** pergunta: 2.251 tokens de contexto viram 3.410 processados |
+| [`inventario_stride_session_usage/`](inventario_stride_session_usage/README.md) | acumula o custo de **muitas** perguntas, com estatísticas e um histograma em PNG |
+
+O fio condutor é o `doc_stride`: o modelo lê no máximo 512 tokens por vez, então
+um contexto maior é cortado em **janelas** que se sobrepõem, para que nenhuma
+resposta se perca na emenda. Essa sobreposição custa tokens — e as três pastas
+existem para tornar esse custo visível, mensurável e, por fim, acumulável.
+
 Modelos usados:
 
 - `basico/` → `pierreguillou/bert-base-cased-squad-v1.1-portuguese`
 - `pdf/` e `inventario/` → `deepset/xlm-roberta-base-squad2` (**o mesmo nas duas**)
+- as três variantes `inventario_stride*/` → `deepset/xlm-roberta-base-squad2`
+  (**o mesmo de novo**: o que muda entre elas não é o modelo)
 
 ---
 
@@ -259,6 +278,7 @@ PORT=3001 just inventario serve    # vai para a 3001
 | Arquivo | O que tem dentro |
 |---|---|
 | [`basico/README.md`](basico/README.md) · [`pdf/`](pdf/README.md) · [`inventario/`](inventario/README.md) | o README de cada variante, com detalhes e experimentos |
+| [`inventario_stride/`](inventario_stride/README.md) · [`_usage/`](inventario_stride_usage/README.md) · [`_session_usage/`](inventario_stride_session_usage/README.md) | a série sobre janelas, `doc_stride` e custo em tokens |
 | `basico/service.py` | o serviço mais simples, ~15 linhas de código útil |
 | `pdf/service.py` | comentário longo no topo explicando por que esta variante erra |
 | `inventario/inventario.py` | a conversão de CSV em prosa — o coração da solução |
