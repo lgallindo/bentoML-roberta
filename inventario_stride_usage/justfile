@@ -1,10 +1,22 @@
+# =============================================================================
+# Variante inventario_stride_usage -- responde e, na mesma chamada, informa
+# quantas janelas o contexto gerou e quantos tokens foram processados.
+#
+# Segundo degrau de três. Veja o README.md desta pasta.
+#
+#     just inventario_stride_usage run       teste rápido, sem servidor
+#     just inventario_stride_usage serve     sobe o servidor (terminal 1)
+#     just inventario_stride_usage curl-qa   faz a pergunta  (terminal 2)
+# =============================================================================
 VARIANTE := "inventario_stride_usage"
 
 import '../comum.just'
 
+# Mostra as receitas desta variante quando você roda só `just`
 default:
 	@just --list
 
+# Pergunta o preço de um produto e mostra o token_usage junto da resposta
 curl-qa: _servidor-vivo
 	curl -sS --fail-with-body -X POST -H 'Content-Type: application/json' \
 		-d '{"question":"Qual é o preço do Fone de ouvido Bluetooth?"}' \
