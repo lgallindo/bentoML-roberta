@@ -1,0 +1,102 @@
+# =============================================================================
+# Falcon 90M sample apps -- structured glue (JSON / route / template / email)
+#
+# Offline (sem porta):
+#     just falcon90m_apps test
+#     just falcon90m_apps test-verbose
+#
+# HTTP (porta 8080 por padrão — deixa 3xxx livres):
+#     just falcon90m_apps serve-open
+#     PORT=8080 just falcon90m_apps curl-all
+#     PORT=8080 just falcon90m_apps stop
+# =============================================================================
+VARIANTE := "falcon90m_apps"
+
+import '../comum.just'
+
+# Mostra as receitas desta variante quando você roda só `just`
+default:
+	@just --list
+
+# Sobe em 8080 por padrão (fora da faixa 3xxx)
+serve-open:
+	#!/usr/bin/env bash
+	PORT="${PORT:-8080}" just serve
+
+# A suíte inteira: 22 casos, sem servidor, sem porta, sem HTTP
+test:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	export OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 TORCH_NUM_THREADS=2
+	uv run --no-active python suite.py
+
+# A mesma suíte, mostrando o prompt e a resposta crua de cada caso
+test-verbose:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	export OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 TORCH_NUM_THREADS=2
+	uv run --no-active python suite.py --verbose
+
+# `just falcon90m_apps run` (comum.just) também roda a suite via service.py
+
+# Só a extração de JSON (repare no campo `raw`: o que o modelo disse)
+curl-extract-json: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"text":"Alice lives in Recife.","keys":["name","city"]}' \
+		{{BASE_URL}}/extract_json | jq
+
+# Só o roteamento de intenção (compare `raw`, `model_label` e `heuristic`)
+curl-route-intent: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"text":"Please cancel my subscription today."}' \
+		{{BASE_URL}}/route_intent | jq
+
+# Só o preenchimento de template (repare em `used_model`: quase sempre false)
+curl-fill-template: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"template":"Hello {name}, your order {id} ships on {date}.","data":{"name":"Maya","id":"A-17","date":"Friday"}}' \
+		{{BASE_URL}}/fill_template | jq
+
+# Só a etiqueta de e-mail (de novo: `raw` contra a decisão final)
+curl-tag-email: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"subject":"Q3 invoice attached — payment due Friday"}' \
+		{{BASE_URL}}/tag_email | jq
+
+# Bateria HTTP das quatro apps
+curl-all: curl-extract-json curl-route-intent curl-fill-template curl-tag-email
+	@echo "curl-all ok"
+
+# Sobe, testa via HTTP, derruba (porta 8080)
+test-http:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	PORT="${PORT:-8080}"
+	export PORT
+	just serve-open &
+	pid=$!
+	cleanup() {
+		just stop || true
+		wait "$pid" 2>/dev/null || true
+	}
+	trap cleanup EXIT
+	for i in $(seq 1 90); do
+		if curl -sf -m 2 -o /dev/null "http://127.0.0.1:${PORT}/readyz"; then
+			break
+		fi
+		sleep 2
+	done
+	curl -sf -m 3 -o /dev/null "http://127.0.0.1:${PORT}/readyz"
+	just curl-all

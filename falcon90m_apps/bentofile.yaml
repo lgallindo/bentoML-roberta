@@ -1,0 +1,21 @@
+# Receita de empacotamento das sample apps Falcon 90M.
+service: "service:QAService"
+name: qa-falcon90m-apps
+
+labels:
+  project: qa-demo
+  variante: falcon90m_apps
+
+include:
+  - "service.py"
+  - "engine.py"
+  - "suite.py"
+
+python:
+  packages:
+    - bentoml
+    - "transformers<5"
+    - torch
+    - "protobuf>=5.0.0"
+  extra_index_url:
+    - "https://download.pytorch.org/whl/cpu"
