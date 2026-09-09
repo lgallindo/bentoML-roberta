@@ -1,0 +1,27 @@
+# =============================================================================
+# Variante pdf_stride -- os mesmos dois PDFs da variante `pdf/`, com o tamanho
+# da janela (max_seq_len) e a sobreposição (doc_stride) escritos no service.py.
+#
+# A lição desta pasta é NEGATIVA: deixar as janelas explícitas não conserta o
+# contexto. São 40 janelas e 15.182 tokens processados por pergunta -- 4,5x o
+# custo da variante inventario_stride_usage -- e as perguntas difíceis
+# continuam sem resposta. Veja o README.md desta pasta.
+#
+#     just pdf_stride run       teste rápido, sem servidor
+#     just pdf_stride serve     sobe o servidor (terminal 1)
+#     just pdf_stride curl-qa   faz a pergunta  (terminal 2, uns 15 s)
+# =============================================================================
+VARIANTE := "pdf_stride"
+
+import '../comum.just'
+
+# Mostra as receitas desta variante quando você roda só `just`
+default:
+	@just --list
+
+# "O que é o SAC?" -- a pergunta que esta variante acerta (leva uns 15 s)
+curl-qa: _servidor-vivo
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"question":"O que é o SAC?"}' \
+		{{BASE_URL}}/answer | jq
