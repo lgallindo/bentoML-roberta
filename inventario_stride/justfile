@@ -1,0 +1,24 @@
+# =============================================================================
+# Variante inventario_stride -- o mesmo estoque da variante `inventario`, mas
+# com o tamanho da janela (max_seq_len) e a sobreposição (doc_stride) escritos
+# explicitamente no service.py.
+#
+# Primeiro degrau de três. Veja o README.md desta pasta.
+#
+#     just inventario_stride run       teste rápido, sem servidor
+#     just inventario_stride serve     sobe o servidor (terminal 1)
+#     just inventario_stride curl-qa   faz a pergunta  (terminal 2)
+# =============================================================================
+VARIANTE := "inventario_stride"
+
+import '../comum.just'
+
+# Mostra as receitas desta variante quando você roda só `just`
+default:
+	@just --list
+
+# Pergunta o preço de um produto do estoque ao endpoint /answer
+curl-qa: _servidor-vivo
+	curl -sS --fail-with-body -X POST -H 'Content-Type: application/json' \
+		-d '{"question":"Qual é o preço do Fone de ouvido Bluetooth?"}' \
+		{{BASE_URL}}/answer | jq
