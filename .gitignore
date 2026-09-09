@@ -13,3 +13,6 @@ bentos/
 
 # Histograma gerado pela receita `curl-histogram`
 score-histogram.png
+
+# Notas de trabalho locais -- nunca versionadas
+NOTAS-DE-TRABALHO.md
