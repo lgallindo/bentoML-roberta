@@ -1,19 +1,38 @@
+# =============================================================================
+# Variante inventario_stride_session_usage -- além de responder, acumula o
+# score e os tokens de cada chamada e expõe estatísticas e um histograma.
+#
+# Terceiro degrau de três. Veja o README.md desta pasta.
+#
+# Roteiro que faz a variante fazer sentido (servidor de pé no terminal 1):
+#
+#     just inventario_stride_session_usage curl-metrics    # antes: count 0
+#     just inventario_stride_session_usage curl-qa         # repita 3x
+#     just inventario_stride_session_usage curl-metrics    # veja acumular
+#     just inventario_stride_session_usage curl-histogram  # gera o PNG
+#
+# "Sessão" = a vida do processo: reiniciar o servidor zera o acumulado.
+# =============================================================================
 VARIANTE := "inventario_stride_session_usage"
 
 import '../comum.just'
 
+# Mostra as receitas desta variante quando você roda só `just`
 default:
 	@just --list
 
+# Pergunta o preço de um produto e mostra o token_usage junto da resposta
 curl-qa: _servidor-vivo
 	curl -sS --fail-with-body -X POST -H 'Content-Type: application/json' \
 		-d '{"question":"Qual é o preço do Fone de ouvido Bluetooth?"}' \
 		{{BASE_URL}}/answer | jq
 
+# Estatísticas acumuladas desde que o servidor subiu (antes da 1a pergunta: count 0)
 curl-metrics: _servidor-vivo
 	curl -sS --fail-with-body -X POST \
 		{{BASE_URL}}/session-metrics | jq
 
+# Salva score-histogram.png nesta pasta (ignorado pelo git)
 curl-histogram: _servidor-vivo
 	curl -sS --fail-with-body -X POST \
 		{{BASE_URL}}/score-histogram -o score-histogram.png
