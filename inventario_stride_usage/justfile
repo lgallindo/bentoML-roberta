@@ -1,0 +1,11 @@
+VARIANTE := "inventario_stride_usage"
+
+import '../comum.just'
+
+default:
+	@just --list
+
+curl-qa: _servidor-vivo
+	curl -sS --fail-with-body -X POST -H 'Content-Type: application/json' \
+		-d '{"question":"Qual é o preço do Fone de ouvido Bluetooth?"}' \
+		{{BASE_URL}}/answer | jq

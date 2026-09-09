@@ -8,6 +8,7 @@
 #     basico/        pergunta + contexto vêm na requisição
 #     pdf/           contexto = todos os PDFs em context/ (dá errado, de propósito)
 #     inventario/    contexto = 25 produtos de um CSV (dá certo)
+#     inventario_stride_usage/  o mesmo CSV, mostrando as janelas do doc_stride
 #
 # Como chamar uma receita de uma variante -- o nome da pasta vem primeiro:
 #
@@ -28,6 +29,7 @@
 mod basico 'basico'
 mod pdf 'pdf'
 mod inventario 'inventario'
+mod inventario_stride_usage 'inventario_stride_usage'
 
 # Mostra as três variantes e as receitas gerais
 default:
