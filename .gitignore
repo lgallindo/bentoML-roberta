@@ -10,3 +10,6 @@ tmp/
 
 # Bentos construídos localmente
 bentos/
+
+# Histograma gerado pela receita `curl-histogram`
+score-histogram.png
