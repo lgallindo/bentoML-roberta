@@ -1,0 +1,29 @@
+# =============================================================================
+# Variante pdf_stride_usage -- os dois PDFs da variante `pdf/`, respondendo E
+# informando quanto cada pergunta custou em janelas e tokens.
+#
+# É a régua que transforma "este contexto está ruim" em número:
+#
+#     inventario_stride_usage:   9 janelas,  3.410 tokens, acerta
+#     pdf_stride_usage:         40 janelas, 15.182 tokens, vazio nas difíceis
+#
+# Veja o README.md desta pasta.
+#
+#     just pdf_stride_usage run       teste rápido, sem servidor
+#     just pdf_stride_usage serve     sobe o servidor (terminal 1)
+#     just pdf_stride_usage curl-qa   faz a pergunta  (terminal 2, uns 15 s)
+# =============================================================================
+VARIANTE := "pdf_stride_usage"
+
+import '../comum.just'
+
+# Mostra as receitas desta variante quando você roda só `just`
+default:
+	@just --list
+
+# "O que é o SAC?" com o relatório token_usage junto da resposta (uns 15 s)
+curl-qa: _servidor-vivo
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"question":"O que é o SAC?"}' \
+		{{BASE_URL}}/answer | jq
