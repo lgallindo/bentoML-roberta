@@ -1,10 +1,10 @@
 # =============================================================================
-# Receitas compartilhadas pelas três variantes.
+# Receitas compartilhadas por TODAS as variantes.
 #
 # Cada pasta de variante tem seu próprio justfile, que começa com
 #     import '../comum.just'
 # e acrescenta só as receitas de curl próprias da sua API. Tudo que é igual
-# nas três (subir, parar, empacotar, abrir o Swagger) mora aqui.
+# em todas (subir, parar, empacotar, abrir o Swagger) mora aqui.
 #
 # O `just` roda cada receita DENTRO da pasta da variante. É por isso que
 # `bentoml serve service:QAService` acha o service.py certo e que
@@ -18,7 +18,7 @@
 PORT := env_var_or_default("PORT", "3000")
 BASE_URL := "http://127.0.0.1:" + PORT
 
-# O caminho de importação é o mesmo nas três pastas: cada uma tem o seu
+# O caminho de importação é o mesmo em todas as pastas: cada uma tem o seu
 # service.py, com a sua própria classe QAService lá dentro.
 SERVICE := "service:QAService"
 
