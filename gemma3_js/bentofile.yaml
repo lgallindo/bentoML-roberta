@@ -1,0 +1,21 @@
+service: "service:QAService"
+name: qa-gemma3-js
+
+labels:
+  project: qa-demo
+  variante: gemma3_js
+
+include:
+  - "service.py"
+  - "static/"
+
+python:
+  packages:
+    - bentoml
+    - "transformers<5"
+    - torch
+    - "protobuf>=5.0.0"
+    - "sentencepiece>=0.2.0"
+    - fastapi
+  extra_index_url:
+    - "https://download.pytorch.org/whl/cpu"

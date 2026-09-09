@@ -1,0 +1,42 @@
+# =============================================================================
+# Variante GEMMA3 + JS -- chat multi-turn (HTML/JS em /ui)
+#
+# Prefira porta 8080 para NÃO ocupar a faixa 3xxx:
+#     PORT=8080 just gemma3_js serve
+# =============================================================================
+VARIANTE := "gemma3_js"
+
+import '../comum.just'
+
+# Mostra as receitas desta variante quando você roda só `just`
+default:
+	@just --list
+
+# Sobe em 8080 por padrão (deixa 3xxx livres)
+serve-open:
+	#!/usr/bin/env bash
+	PORT="${PORT:-8080}" just serve
+
+# Manda TRÊS mensagens de uma vez: o servidor não guarda histórico nenhum
+curl-chat: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	echo "POST {{BASE_URL}}/chat (multi-turn) ..."
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"messages":[{"role":"user","content":"My name is Ada."},{"role":"assistant","content":"Hi Ada!"},{"role":"user","content":"What is my name?"}],"max_new_tokens":64,"temperature":0.0}' \
+		{{BASE_URL}}/chat | jq
+
+# Turno único, sem histórico -- compare com o curl-chat acima
+curl-generate: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"prompt":"Say hello in one short sentence.","max_new_tokens":64,"temperature":0.0}' \
+		{{BASE_URL}}/generate | jq
+
+# Abre a interface JS no navegador
+open-ui:
+	@echo "UI JS: {{BASE_URL}}/ui/"
+	xdg-open {{BASE_URL}}/ui/ >/dev/null 2>&1 || true
