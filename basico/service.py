@@ -37,10 +37,12 @@ MODEL_NAME = "pierreguillou/bert-base-cased-squad-v1.1-portuguese"
 class QAService:
 
     def __init__(self):
+        """Carrega o pipeline de perguntas e respostas."""
         self.pipeline = pipeline("question-answering", model=MODEL_NAME)
 
     @bentoml.api
     def answer(self, question: str, context: str) -> dict:
+        """Procura uma resposta no contexto enviado pelo cliente."""
         return self.pipeline(question=question, context=context)
 
 
