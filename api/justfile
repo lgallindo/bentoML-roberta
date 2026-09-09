@@ -1,0 +1,101 @@
+# =============================================================================
+# Variante API -- o contexto é buscado numa API externa quando o serviço sobe
+#
+#     POST /answer   {"question": "..."}
+#
+# Como em inventario/, a requisição leva SÓ a pergunta. A diferença é de onde
+# veio o contexto: aqui ele foi buscado na BrasilAPI na inicialização, e a
+# resposta traz um campo `origem` dizendo se veio da API ou do cache.
+#
+# Para trocar o ano, use a variável de ambiente ANTES do just:
+#     FERIADOS_ANO=2027 just api serve
+# =============================================================================
+VARIANTE := "api"
+
+import '../comum.just'
+
+# Mostra as receitas desta variante quando você roda só `just`
+default:
+	@just --list
+
+# Monta e imprime o contexto SEM carregar o modelo e SEM subir servidor.
+# É a receita mais rápida para conferir se a API está respondendo.
+contexto:
+	uv run --no-active python api.py
+
+# Força uma busca nova na API e regrava o cache em context/.
+atualizar:
+	#!/usr/bin/env bash
+	set -o pipefail
+	uv run --no-active python api.py > /dev/null
+	echo "Cache atualizado:"
+	ls -la context/*.json | sed 's/^/  /'
+
+# Quatro perguntas sobre os feriados, respondidas em 2 a 4 segundos
+curl-qa: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	for pergunta in \
+		"Quando é o Carnaval?" \
+		"Em que dia da semana cai o Natal?" \
+		"Qual feriado acontece em 7 de setembro?" \
+		"Quando é o Natal?"
+	do
+		echo "Pergunta: $pergunta"
+		curl -sS --fail-with-body -m 120 \
+			-X POST -H 'Content-Type: application/json' \
+			-d "$(jq -nc --arg q "$pergunta" '{question:$q}')" \
+			{{BASE_URL}}/answer | jq -c
+		echo ""
+	done
+
+# A pergunta que o modelo erra -- responde do TIPO errado, com score ALTO
+curl-tipo-errado: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	echo 'Pergunta: "Quando é o feriado de Tiradentes?"'
+	echo ''
+	echo 'Perguntamos QUANDO. Medido em 09/09/2026, o modelo responde'
+	echo '"terça-feira" -- um dia da semana, não uma data. Resposta do tipo'
+	echo 'errado, e com score 0,52: MAIOR que o das respostas certas de'
+	echo '`just api curl-qa`, que ficam entre 0,06 e 0,61.'
+	echo ''
+	echo 'Nenhum erro de HTTP acontece aqui. O servidor está saudável.'
+	echo ''
+	curl -sS --fail-with-body -m 120 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"question":"Quando é o feriado de Tiradentes?"}' \
+		{{BASE_URL}}/answer | jq
+
+# Uma pergunta que o contexto não cobre -- e o modelo admite isso
+curl-nao-sei: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	echo 'Pergunta: "Qual é a capital da França?"'
+	echo 'Não há nada sobre a França na lista de feriados. O esperado é answer vazio ("").'
+	curl -sS --fail-with-body -m 120 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"question":"Qual é a capital da França?"}' \
+		{{BASE_URL}}/answer | jq
+
+# A demonstração da variante: MESMA pergunta, contexto de outro ano.
+# Rode com o servidor de pé em 2026, depois suba outro com FERIADOS_ANO=2027.
+curl-mudou: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	echo "Pergunta: 'Quando é o Carnaval?'"
+	echo ""
+	echo "Repare no campo 'origem' da resposta. Agora suba o servidor assim,"
+	echo "em outro terminal e em outra porta:"
+	echo ""
+	echo "    FERIADOS_ANO=2027 PORT=3001 just api serve"
+	echo ""
+	echo "e repita:  PORT=3001 just api curl-mudou"
+	echo ""
+	echo "Mesmo código, mesmo modelo, mesma pergunta -- resposta diferente."
+	echo "Nenhuma métrica de servidor teria percebido a troca."
+	echo ""
+	curl -sS --fail-with-body -m 120 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"question":"Quando é o Carnaval?"}' \
+		{{BASE_URL}}/answer | jq
