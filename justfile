@@ -17,6 +17,7 @@
 #     falcon90m/     LLM generativo minúsculo (Falcon-H1-Tiny-90M)
 #     gemma3/        LLM generativo minúsculo (Gemma 3 270M Instruct)
 #     falcon90m_apps/ 4 sample apps (JSON / rota / template / e-mail)
+#     gemma3_gradio/ Gemma 3 + chat multi-turn (UI Gradio em /ui)
 #
 # Como chamar uma receita de uma variante -- o nome da pasta vem primeiro:
 #
@@ -46,6 +47,7 @@ mod pdf_stride_usage 'pdf_stride_usage'
 mod falcon90m 'falcon90m'
 mod gemma3 'gemma3'
 mod falcon90m_apps 'falcon90m_apps'
+mod gemma3_gradio 'gemma3_gradio'
 
 # Mostra as três variantes e as receitas gerais
 default:

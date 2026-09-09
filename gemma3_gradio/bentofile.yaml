@@ -1,0 +1,21 @@
+service: "service:QAService"
+name: qa-gemma3-gradio
+
+labels:
+  project: qa-demo
+  variante: gemma3_gradio
+
+include:
+  - "service.py"
+
+python:
+  packages:
+    - bentoml
+    - "transformers<5"
+    - torch
+    - "protobuf>=5.0.0"
+    - "sentencepiece>=0.2.0"
+    - "gradio>=5,<6"
+    - fastapi
+  extra_index_url:
+    - "https://download.pytorch.org/whl/cpu"
