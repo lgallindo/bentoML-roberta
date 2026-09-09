@@ -59,6 +59,7 @@ def _context_sample(text: str, n: int = 3) -> str:
 class QAService:
 
     def __init__(self):
+        """Carrega o modelo, o tokenizer e o contexto do estoque."""
         self.model = AutoModelForQuestionAnswering.from_pretrained(MODEL_NAME)
         self.tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
         self.pipeline = pipeline(
@@ -80,6 +81,7 @@ class QAService:
 
     @bentoml.api
     def answer(self, question: str) -> dict:
+        """Responde uma pergunta usando o contexto carregado do estoque."""
         return self.pipeline(question=question, context=self.context)
 
 

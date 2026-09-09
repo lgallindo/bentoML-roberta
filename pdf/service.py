@@ -73,6 +73,7 @@ def _context_sample(text: str, n: int = 3) -> str:
 class QAService:
 
     def __init__(self):
+        """Carrega o modelo, o tokenizer e os PDFs como um único contexto."""
         self.model = AutoModelForQuestionAnswering.from_pretrained(MODEL_NAME)
         self.tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
         self.pipeline = pipeline(
@@ -99,12 +100,14 @@ class QAService:
         print(_context_sample(self.context))
 
     def _load_pdf_context(self, pdf_path: str | Path) -> str:
+        """Extrai e concatena o texto de todas as páginas de um PDF."""
         reader = PdfReader(str(pdf_path))
         pages = [page.extract_text() for page in reader.pages]
         return "\n\n".join(page for page in pages if page)
 
     @bentoml.api
     def answer(self, question: str) -> dict:
+        """Responde uma pergunta usando o contexto combinado dos PDFs."""
         return self.pipeline(question=question, context=self.context)
 
 

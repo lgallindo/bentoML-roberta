@@ -19,10 +19,12 @@ def _brl(valor: str) -> str:
 
 
 def _plural(n: int, singular: str, plural: str) -> str:
+    """Retorna a forma singular para um item e a plural para os demais."""
     return singular if n == 1 else plural
 
 
 def linha_para_texto(row: dict) -> str:
+    """Converte uma linha do CSV em frases de contexto para o modelo."""
     produto = row["produto"]
     estoque = int(row["estoque_unidades"])
     prazo = int(row["prazo_envio_dias"])
