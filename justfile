@@ -15,6 +15,7 @@
 #     pdf_stride/    os mesmos PDFs, com as janelas explícitas (não conserta)
 #     pdf_stride_usage/  o mesmo, medindo: 40 janelas, 15.182 tokens
 #     falcon90m/     LLM generativo minúsculo (Falcon-H1-Tiny-90M)
+#     gemma3/        LLM generativo minúsculo (Gemma 3 270M Instruct)
 #
 # Como chamar uma receita de uma variante -- o nome da pasta vem primeiro:
 #
@@ -42,6 +43,7 @@ mod inventario_stride_session_usage 'inventario_stride_session_usage'
 mod pdf_stride 'pdf_stride'
 mod pdf_stride_usage 'pdf_stride_usage'
 mod falcon90m 'falcon90m'
+mod gemma3 'gemma3'
 
 # Mostra as três variantes e as receitas gerais
 default:

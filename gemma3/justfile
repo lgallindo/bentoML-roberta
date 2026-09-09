@@ -1,0 +1,57 @@
+# =============================================================================
+# Variante GEMMA 3 -- LLM generativo minúsculo (270M Instruct)
+#
+#     POST /generate   {"prompt": "...", "max_new_tokens": 64}
+#
+# Irmã da falcon90m/: o modelo ESCREVE a resposta, em vez de grifar contexto.
+# Modelo gated no Hugging Face — veja o README desta pasta.
+# =============================================================================
+VARIANTE := "gemma3"
+
+import '../comum.just'
+
+# Mostra as receitas desta variante quando você roda só `just`
+default:
+	@just --list
+
+# Geração curta de exemplo
+curl-generate: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	echo "Modelo desta variante: google/gemma-3-270m-it"
+	echo "Gerando em {{BASE_URL}}/generate ..."
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"prompt":"Say hello in one short sentence.","max_new_tokens":64,"temperature":0.0}' \
+		{{BASE_URL}}/generate | jq
+
+# Mesma chamada sem jq
+curl-generate-raw: _servidor-vivo
+	@echo "Mesma chamada, sem jq (resposta crua)"
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"prompt":"Say hello in one short sentence.","max_new_tokens":64,"temperature":0.0}' \
+		{{BASE_URL}}/generate
+	@echo ""
+
+# Prompt lido de arquivo
+curl-generate-file: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	mkdir -p tmp
+	printf '%s\n' '{"prompt":"Write a one-line summary of what a small language model is good for.","max_new_tokens":80,"temperature":0.0}' > tmp/payload.json
+	echo "Enviando tmp/payload.json para {{BASE_URL}}/generate"
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		--data-binary @tmp/payload.json \
+		{{BASE_URL}}/generate | jq
+
+# Formatação estruturada — ponto forte do Gemma 3 270M
+curl-format: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	echo "Pedido de formatação estruturada..."
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"prompt":"Rewrite this as JSON with keys name and city only: Alice lives in Recife.","max_new_tokens":80,"temperature":0.0}' \
+		{{BASE_URL}}/generate | jq
