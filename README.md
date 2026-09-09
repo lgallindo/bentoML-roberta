@@ -1,13 +1,16 @@
 # Perguntas e respostas com BentoML
 
-Três serviços web que respondem perguntas em português usando modelos de
-*question answering* extrativo (o modelo não escreve a resposta: ele **grifa**
-um trecho de um texto que você entregou).
+Catorze serviços web pequenos, servidos com BentoML, para aprender por
+comparação. Nove deles respondem perguntas em português com *question
+answering* extrativo — o modelo não escreve a resposta, ele **grifa** um
+trecho de um texto que você entregou. Os outros cinco usam modelos generativos
+minúsculos, que **escrevem** a resposta.
 
-As três variantes usam quase o mesmo código. O que muda entre elas é **de onde
-vem o texto onde a resposta é procurada** — o chamado *contexto*. E é aí que
-está a lição: duas variantes usam **exatamente o mesmo modelo**, mas uma acerta
-em 3 segundos e a outra erra em 18.
+As variantes usam quase o mesmo código. O que muda é **de onde vem o texto
+onde a resposta é procurada** — o chamado *contexto*. E é aí que está a lição
+central: duas variantes usam **exatamente o mesmo modelo**, mas uma acerta em
+3 segundos e a outra erra em 18. Quando isso acontece, o culpado quase nunca
+é o modelo.
 
 ---
 
@@ -79,7 +82,7 @@ Agora sim, **dentro da pasta do projeto**, monte o ambiente:
 just sync
 ```
 
-Isso cria a pasta `.venv/` com Python 3.13 e tudo que as três variantes usam.
+Isso cria a pasta `.venv/` com Python 3.13 e tudo que as 14 variantes usam.
 Roda uma vez e serve para as três.
 
 **Duas ressalvas.** Só funciona em Linux ou WSL: duas receitas usam `ss` e
@@ -103,45 +106,90 @@ resposta no fim, está tudo funcionando e você pode seguir.
 
 ---
 
-## As três variantes
+## As variantes
 
-| pasta | o que você manda na requisição | tamanho do contexto | tempo por pergunta | resultado |
+São 14 pastas, em três grupos. Comece pelas quatro primeiras; as outras nove
+existem para responder perguntas que só fazem sentido depois.
+
+### 1. QA extrativo — o modelo **grifa** um trecho do contexto
+
+Nenhum deles inventa texto: a resposta existe literalmente dentro do contexto,
+e vem com `start` e `end`, que são posições.
+
+| pasta | o que você manda | tamanho do contexto | tempo | resultado |
 |---|---|---|---|---|
 | [`basico/`](basico/README.md) | a pergunta **e** o contexto | você escolhe (curtinho) | menos de 1 s | acerta |
 | [`pdf/`](pdf/README.md) | só a pergunta | 43.069 caracteres (2 PDFs colados) | 15 a 19 s | **erra — de propósito** |
 | [`inventario/`](inventario/README.md) | só a pergunta | 8.355 caracteres (25 produtos de um CSV) | 2 a 4 s | acerta |
+| [`api/`](api/README.md) | só a pergunta | ~2.900 caracteres buscados na BrasilAPI | 2 a 4 s | acerta |
 
-Nas variantes `pdf/` e `inventario/` o contexto é carregado **uma vez**, quando
-o serviço sobe, e fica guardado dentro dele. Por isso a requisição leva só a
-pergunta.
+Nessas três últimas o contexto é carregado **uma vez**, quando o serviço sobe.
+Por isso a requisição leva só a pergunta.
 
-**Cada pasta tem o seu próprio README**, com a lista de arquivos, a API, as
-receitas e experimentos para tentar: [`basico/`](basico/README.md) ·
-[`pdf/`](pdf/README.md) · [`inventario/`](inventario/README.md).
+A variante [`api/`](api/README.md) acrescenta o que nenhum arquivo local
+ensina: um contexto que **muda sozinho** e que **pode cair**. Ela busca os
+feriados numa API pública e, sem rede, cai para um cache — o campo `origem` na
+resposta diz qual dos dois caminhos foi usado.
 
-### Aprofundamento: como o modelo lê um texto que não cabe nele
+### 2. `doc_stride` — como o modelo lê um texto que não cabe nele
 
-Três variantes extras, em sequência, para quem já entendeu as de cima. Todas
-usam o mesmo modelo e o mesmo CSV da variante `inventario/` — o que muda é o
-quanto elas deixam você enxergar do trabalho feito por baixo.
+O modelo lê no máximo 512 tokens por vez. Um contexto maior é cortado em
+**janelas** que se sobrepõem, para que nenhuma resposta se perca na emenda.
+Essa sobreposição custa tokens, e estas cinco pastas tornam o custo visível,
+mensurável e comparável.
 
 | pasta | o que acrescenta |
 |---|---|
-| [`inventario_stride/`](inventario_stride/README.md) | escreve no código o tamanho da janela e a sobreposição — e mostra que esses números já eram os padrões |
-| [`inventario_stride_usage/`](inventario_stride_usage/README.md) | mede o custo de **uma** pergunta: 2.251 tokens de contexto viram 3.410 processados |
-| [`inventario_stride_session_usage/`](inventario_stride_session_usage/README.md) | acumula o custo de **muitas** perguntas, com estatísticas e um histograma em PNG |
+| [`inventario_stride/`](inventario_stride/README.md) | escreve no código o tamanho da janela e a sobreposição — e mostra que esses números **já eram os padrões** |
+| [`inventario_stride_usage/`](inventario_stride_usage/README.md) | mede **uma** pergunta: 2.251 tokens de contexto viram 3.410 processados |
+| [`inventario_stride_session_usage/`](inventario_stride_session_usage/README.md) | acumula **muitas** perguntas, com estatísticas e histograma em PNG |
+| [`pdf_stride/`](pdf_stride/README.md) | o mesmo sobre os PDFs — e prova que **não conserta** o contexto ruim |
+| [`pdf_stride_usage/`](pdf_stride_usage/README.md) | mede o estrago: 40 janelas, 15.182 tokens, resposta vazia |
 
-O fio condutor é o `doc_stride`: o modelo lê no máximo 512 tokens por vez, então
-um contexto maior é cortado em **janelas** que se sobrepõem, para que nenhuma
-resposta se perca na emenda. Essa sobreposição custa tokens — e as três pastas
-existem para tornar esse custo visível, mensurável e, por fim, acumulável.
+O contraste entre as duas últimas linhas é o argumento central do repositório:
+
+| | contexto preparado | contexto cru |
+|---|---:|---:|
+| janelas | 9 | **40** |
+| tokens processados | 3.410 | **15.182** |
+| perguntas difíceis | acerta | **devolve vazio** |
+
+Mesmo modelo, mesma configuração. **4,5 vezes mais caro, e pior.**
+
+### 3. LLM generativo — o modelo **escreve** a resposta
+
+Aqui muda o gênero: não há contexto para grifar, não há `start` nem `end`. A
+API vira `POST /generate` ou `POST /chat`.
+
+| pasta | o que é |
+|---|---|
+| [`falcon90m/`](falcon90m/README.md) | Falcon-H1-Tiny-90M Instruct (~91M) — o menor que ainda serve para alguma coisa |
+| [`gemma3/`](gemma3/README.md) | Gemma 3 270M Instruct — um degrau acima (**gated** no HF) |
+| [`falcon90m_apps/`](falcon90m_apps/README.md) | 4 sample apps + suíte de 22 casos, e uma lição sobre suíte verde |
+| [`gemma3_gradio/`](gemma3_gradio/README.md) | chat multi-turn com UI Gradio em `/ui` |
+| [`gemma3_js/`](gemma3_js/README.md) | o mesmo chat, com HTML/JS escrito à mão |
+
+Duas dessas merecem aviso. A [`falcon90m_apps/`](falcon90m_apps/README.md)
+passa 22 de 22 testes — e o README explica por que esse número é verdadeiro e
+enganoso ao mesmo tempo (leia a coluna `raw`: quem acerta quase sempre é uma
+regra de palavra-chave, não o modelo). E as duas de chat mostram que a memória
+de um chatbot mora **no cliente**, não no servidor.
+
+**Cada pasta tem o seu próprio README**, com a lista de arquivos, a API, as
+receitas e experimentos para tentar.
 
 Modelos usados:
 
 - `basico/` → `pierreguillou/bert-base-cased-squad-v1.1-portuguese`
-- `pdf/` e `inventario/` → `deepset/xlm-roberta-base-squad2` (**o mesmo nas duas**)
-- as três variantes `inventario_stride*/` → `deepset/xlm-roberta-base-squad2`
-  (**o mesmo de novo**: o que muda entre elas não é o modelo)
+- `pdf/`, `inventario/`, `api/` e as cinco `*_stride*/` →
+  `deepset/xlm-roberta-base-squad2` (**o mesmo nas oito**: o que muda o
+  resultado entre elas nunca é o modelo)
+- `falcon90m/` e `falcon90m_apps/` → `tiiuae/Falcon-H1-Tiny-90M-Instruct`
+- `gemma3/`, `gemma3_gradio/` e `gemma3_js/` → `google/gemma-3-270m-it`
+  (**gated**: aceite a licença e rode `uv run --no-active hf auth login`)
+
+As variantes de chat sobem na porta **8080** com `serve-open`, para deixar a
+faixa 3xxx livre para as outras.
 
 ---
 
@@ -277,12 +325,12 @@ PORT=3001 just inventario serve    # vai para a 3001
 
 | Arquivo | O que tem dentro |
 |---|---|
-| [`basico/README.md`](basico/README.md) · [`pdf/`](pdf/README.md) · [`inventario/`](inventario/README.md) | o README de cada variante, com detalhes e experimentos |
+| o `README.md` de cada uma das 14 pastas | detalhes, API, receitas e experimentos daquela variante |
 | [`inventario_stride/`](inventario_stride/README.md) · [`_usage/`](inventario_stride_usage/README.md) · [`_session_usage/`](inventario_stride_session_usage/README.md) | a série sobre janelas, `doc_stride` e custo em tokens |
 | `basico/service.py` | o serviço mais simples, ~15 linhas de código útil |
 | `pdf/service.py` | comentário longo no topo explicando por que esta variante erra |
 | `inventario/inventario.py` | a conversão de CSV em prosa — o coração da solução |
-| `comum.just` | os comandos compartilhados pelas três variantes |
+| `comum.just` | os comandos compartilhados por todas as variantes |
 | `*/bentofile.yaml` | a receita de empacotamento de cada variante |
 
 Vale ler os comentários dos arquivos: eles explicam não só o que o código faz,

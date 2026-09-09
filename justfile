@@ -1,5 +1,5 @@
 # =============================================================================
-# Projeto: 13 serviços BentoML, do QA extrativo mais simples ao chat com UI
+# Projeto: 14 serviços BentoML, do QA extrativo mais simples ao chat com UI
 #
 # Cada variante mora numa pasta independente, na raiz do projeto.
 # Todas usam o MESMO ambiente Python (o .venv da raiz), então um único
