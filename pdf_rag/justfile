@@ -1,0 +1,98 @@
+# =============================================================================
+# Variante PDF + RAG -- a BUSCA que faltava na variante pdf/
+#
+#     POST /answer   {"question": "...", "trechos": 6}
+#     POST /search   {"question": "...", "trechos": 6}   <- só a busca
+#
+# Mesmos PDFs e mesmo modelo da variante pdf/. O que muda é que alguém
+# escolhe os trechos certos ANTES de chamar o modelo.
+# =============================================================================
+VARIANTE := "pdf_rag"
+
+import '../comum.just'
+
+# Mostra as receitas desta variante quando você roda só `just`
+default:
+	@just --list
+
+# A pergunta que a variante pdf/ NÃO consegue responder
+curl-qa: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	echo 'Pergunta: "Qual é o prazo para resposta de reclamação no SAC?"'
+	echo 'A variante pdf/ devolve "" (vazio) em 15-19 s. Veja o que sai aqui:'
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"question":"Qual é o prazo para resposta de reclamação no SAC?"}' \
+		{{BASE_URL}}/answer | jq
+
+# As MESMAS perguntas da receita `just pdf curl-falhas`, lado a lado
+curl-comparar: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	echo "=============================================================="
+	echo "As duas perguntas que a variante pdf/ erra, feitas aqui."
+	echo "Mesmo modelo, mesmos PDFs. Só mudou a etapa de busca."
+	echo "=============================================================="
+	echo ""
+
+	echo '1) "Qual é o prazo para resposta de reclamação no SAC?"'
+	echo '   pdf/  -> "" (vazio), em 15-19 s'
+	echo '   aqui  -> veja abaixo, com a página do Decreto de onde saiu:'
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"question":"Qual é o prazo para resposta de reclamação no SAC?"}' \
+		{{BASE_URL}}/answer | jq '{answer, score, fonte, busca_ms, modelo_ms}'
+	echo ""
+
+	echo '2) "Quantos dias tem o consumidor para cancelar o serviço?"'
+	echo '   pdf/  -> "DIA DAS CRIANÇAS E NATAL," (trecho da apostila do Sebrae)'
+	echo '   aqui  -> "" (vazio), e o vazio é a resposta CERTA: o Decreto manda'
+	echo '            fazer o "processamento imediato" do cancelamento, ou seja,'
+	echo '            não existe prazo em dias para dar.'
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"question":"Quantos dias tem o consumidor para cancelar o serviço?"}' \
+		{{BASE_URL}}/answer | jq '{answer, score, fonte}'
+	echo ""
+	echo "Conclusão: o modelo nunca esteve com defeito. Faltava escolher o"
+	echo "pedaço certo do texto antes de perguntar."
+
+# Mostra SÓ a busca -- os trechos que o modelo vai ler, sem o modelo
+curl-search: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	echo "Os 6 trechos que a busca entrega para a pergunta do prazo."
+	echo "Repare na coluna 'nota' e em QUAL posição está o Art. 13:"
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"question":"Qual é o prazo para resposta de reclamação no SAC?"}' \
+		{{BASE_URL}}/search \
+		| jq '.trechos[] | {nota, pagina, texto: .texto[0:90]}'
+
+# O limite desta variante: com trechos=3 a resposta certa some
+curl-limite: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	echo "A busca é por PALAVRA. A pergunta diz 'resposta de reclamação' e o"
+	echo "Art. 13 diz 'as demandas serão respondidas' -- palavras diferentes."
+	echo "Por isso o trecho certo só aparece na SEXTA posição do ranking."
+	echo ""
+	echo "Com trechos=6 (padrão):"
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"question":"Qual é o prazo para resposta de reclamação no SAC?","trechos":6}' \
+		{{BASE_URL}}/answer | jq '{trechos_lidos, answer, score}'
+	echo ""
+	echo "Com trechos=3 -- a MESMA pergunta, o MESMO modelo:"
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"question":"Qual é o prazo para resposta de reclamação no SAC?","trechos":3}' \
+		{{BASE_URL}}/answer | jq '{trechos_lidos, answer, score}'
+	echo ""
+	echo "Esse buraco é o que os *embeddings* existem para fechar."
+
+# Roda a busca sozinha, sem servidor e sem modelo (é instantâneo)
+busca:
+	@echo "Só a etapa de busca, sem rede neural nenhuma no caminho:"
+	uv run --no-active python busca.py

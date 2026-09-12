@@ -1,5 +1,5 @@
 # =============================================================================
-# Projeto: 14 serviços BentoML, do QA extrativo mais simples ao chat com UI
+# Projeto: 15 serviços BentoML, do QA extrativo mais simples ao chat com UI
 #
 # Cada variante mora numa pasta independente, na raiz do projeto.
 # Todas usam o MESMO ambiente Python (o .venv da raiz), então um único
@@ -8,6 +8,7 @@
 #   QA extrativo -- o modelo GRIFA um trecho do contexto:
 #     basico/        pergunta + contexto vêm na requisição
 #     pdf/           contexto = todos os PDFs em context/ (dá errado, de propósito)
+#     pdf_rag/       os MESMOS PDFs, com busca BM25 antes do modelo (dá certo)
 #     inventario/    contexto = 25 produtos de um CSV (dá certo)
 #     api/           contexto = feriados buscados na BrasilAPI (muda sozinho)
 #
@@ -24,6 +25,7 @@
 #     falcon90m_apps/  4 sample apps (JSON / rota / template / e-mail)
 #     gemma3_gradio/   chat multi-turn, UI Gradio em /ui
 #     gemma3_js/       chat multi-turn, HTML/JS em /ui
+#     falcon90m_js/    o mesmo chat JS, com o Falcon 90M
 #
 # Como chamar uma receita de uma variante -- o nome da pasta vem primeiro:
 #
@@ -34,6 +36,7 @@
 #     just falcon90m curl-generate gera texto com o Falcon 90M
 #     just gemma3 curl-generate    gera texto com o Gemma 3 270M
 #     just falcon90m_apps test     roda a suíte das 4 sample apps, sem servidor
+#     just falcon90m_js serve-open sobe o chat JS do Falcon na 8080
 #
 # Para ver as receitas de uma variante:
 #
@@ -53,12 +56,14 @@ mod inventario_stride 'inventario_stride'
 mod inventario_stride_usage 'inventario_stride_usage'
 mod inventario_stride_session_usage 'inventario_stride_session_usage'
 mod pdf_stride 'pdf_stride'
+mod pdf_rag 'pdf_rag'
 mod pdf_stride_usage 'pdf_stride_usage'
 mod falcon90m 'falcon90m'
 mod gemma3 'gemma3'
 mod falcon90m_apps 'falcon90m_apps'
 mod gemma3_gradio 'gemma3_gradio'
 mod gemma3_js 'gemma3_js'
+mod falcon90m_js 'falcon90m_js'
 
 # Mostra todas as variantes e as receitas gerais
 default:
