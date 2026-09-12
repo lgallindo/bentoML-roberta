@@ -1,0 +1,26 @@
+sku,produto,categoria,preco_brl,estoque_unidades,prazo_envio_dias,vendedor,cidade_uf,garantia_meses
+ELE-001,Fone de ouvido Bluetooth,Eletrônicos,189.90,42,2,Som & Cia,Recife-PE,12
+ELE-002,Caixa de som portátil,Eletrônicos,249.00,18,3,Som & Cia,Recife-PE,12
+ELE-003,Carregador portátil 10000mAh,Eletrônicos,129.90,73,2,TecnoLar,São Paulo-SP,6
+ELE-004,Relógio digital esportivo,Eletrônicos,159.90,0,4,TecnoLar,São Paulo-SP,12
+ELE-005,Teclado sem fio,Eletrônicos,119.00,25,3,TecnoLar,São Paulo-SP,6
+CAS-001,Cafeteira elétrica,Casa e Cozinha,219.90,31,3,Casa Bonita,Belo Horizonte-MG,12
+CAS-002,"Panela de pressão 4,5 litros",Casa e Cozinha,149.90,54,3,Casa Bonita,Belo Horizonte-MG,24
+CAS-003,Liquidificador 900W,Casa e Cozinha,199.00,12,4,Casa Bonita,Belo Horizonte-MG,12
+CAS-004,Sanduicheira grill,Casa e Cozinha,89.90,66,2,Casa Bonita,Belo Horizonte-MG,12
+CAS-005,Chaleira elétrica inox,Casa e Cozinha,134.90,8,3,Utilidades do Sul,Porto Alegre-RS,12
+CAS-006,Garrafa térmica 1 litro,Casa e Cozinha,74.90,90,2,Utilidades do Sul,Porto Alegre-RS,6
+CAS-007,Jogo de lençol casal,Casa e Cozinha,159.90,37,4,Utilidades do Sul,Porto Alegre-RS,3
+MOV-001,Cadeira de escritório giratória,Móveis,649.00,6,7,Móveis Aurora,Curitiba-PR,12
+MOV-002,Luminária de mesa articulada,Móveis,109.90,44,3,Móveis Aurora,Curitiba-PR,6
+MOV-003,Estante de madeira 5 prateleiras,Móveis,529.00,3,10,Móveis Aurora,Curitiba-PR,12
+FER-001,Furadeira elétrica 650W,Ferramentas,289.90,21,4,Ferragens Tupá,Salvador-BA,12
+FER-002,Jogo de chaves de fenda,Ferramentas,64.90,88,3,Ferragens Tupá,Salvador-BA,6
+FER-003,Trena a laser 40 metros,Ferramentas,349.00,0,6,Ferragens Tupá,Salvador-BA,12
+ELD-001,Ventilador de coluna,Eletrodomésticos,229.90,27,4,TecnoLar,São Paulo-SP,12
+ELD-002,Aspirador de pó vertical,Eletrodomésticos,399.00,14,5,TecnoLar,São Paulo-SP,12
+MOD-001,Tênis de corrida masculino,Moda,279.90,52,3,Passo Certo,Fortaleza-CE,3
+MOD-002,Mochila impermeável 30 litros,Moda,189.00,39,3,Passo Certo,Fortaleza-CE,6
+MOD-003,Óculos de sol polarizado,Moda,149.90,61,2,Passo Certo,Fortaleza-CE,3
+LAZ-001,Colchão inflável casal,Lazer,199.90,16,5,Camping Brasil,Rio de Janeiro-RJ,6
+LAZ-002,Barraca de camping 4 pessoas,Lazer,459.00,9,6,Camping Brasil,Rio de Janeiro-RJ,12

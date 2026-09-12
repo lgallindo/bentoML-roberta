@@ -1,5 +1,5 @@
 # =============================================================================
-# Projeto: 15 serviços BentoML, do QA extrativo mais simples ao chat com UI
+# Projeto: 16 serviços BentoML, do QA extrativo mais simples ao chat com UI
 #
 # Cada variante mora numa pasta independente, na raiz do projeto.
 # Todas usam o MESMO ambiente Python (o .venv da raiz), então um único
@@ -25,6 +25,9 @@
 #     falcon90m_apps/  4 sample apps (JSON / rota / template / e-mail)
 #     gemma3_gradio/   chat multi-turn, UI Gradio em /ui
 #     gemma3_js/       chat multi-turn, HTML/JS em /ui
+#
+#   LLM que DECIDE -- o modelo escolhe uma ferramenta e nós executamos:
+#     lfm2_tools/      LFM2-350M, o menor modelo com tool calling de fábrica
 #     falcon90m_js/    o mesmo chat JS, com o Falcon 90M
 #
 # Como chamar uma receita de uma variante -- o nome da pasta vem primeiro:
@@ -63,6 +66,7 @@ mod gemma3 'gemma3'
 mod falcon90m_apps 'falcon90m_apps'
 mod gemma3_gradio 'gemma3_gradio'
 mod gemma3_js 'gemma3_js'
+mod lfm2_tools 'lfm2_tools'
 mod falcon90m_js 'falcon90m_js'
 
 # Mostra todas as variantes e as receitas gerais

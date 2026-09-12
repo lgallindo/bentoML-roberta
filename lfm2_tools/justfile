@@ -1,0 +1,96 @@
+# =============================================================================
+# Variante LFM2 + TOOLS -- o menor modelo que CHAMA FERRAMENTA (354,5M)
+#
+#     POST /tool_call  {"prompt": "..."}   -> só o que o modelo PEDIU
+#     POST /chat       {"prompt": "..."}   -> o ciclo completo
+#     POST /tools      {}                  -> o esquema que o modelo lê
+#
+# Prefira porta 8080 para NÃO ocupar a faixa 3xxx:
+#     PORT=8080 just lfm2_tools serve
+# =============================================================================
+VARIANTE := "lfm2_tools"
+
+import '../comum.just'
+
+# Mostra as receitas desta variante quando você roda só `just`
+default:
+	@just --list
+
+# Sobe em 8080 por padrão (deixa 3xxx livres)
+serve-open:
+	#!/usr/bin/env bash
+	PORT="${PORT:-8080}" just serve
+
+# As ferramentas sozinhas, sem modelo nenhum no caminho
+ferramentas:
+	@echo "Funções Python comuns, mais o tradutor dos três formatos de tool call:"
+	uv run --no-active python ferramentas.py
+
+# A bancada: três modelos medidos lado a lado (baixa ~2,8 GB na primeira vez)
+bancada:
+	@echo "Três modelos pequenos que chamam ferramenta, medidos lado a lado."
+	@echo "Na primeira vez isto baixa ~2,8 GB de pesos. Depois é só CPU."
+	uv run --no-active python bancada.py
+
+# O primeiro salto: o que o modelo PEDIU, sem executar nada
+curl-tool-call: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	echo 'Pergunta: "Tem Cafeteira elétrica no estoque?"'
+	echo 'Repare no campo "cru": tool calling é um FORMATO DE TEXTO.'
+	curl -sS --fail-with-body -m 180 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"prompt":"Tem Cafeteira elétrica no estoque?"}' \
+		{{BASE_URL}}/tool_call | jq
+
+# O ciclo completo: decidir, executar, responder
+curl-chat: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	echo 'Ciclo completo. Acompanhe o campo "passos":'
+	echo '  1) modelo decide     -> pede consultar_estoque(...)'
+	echo '  2) ferramenta executa-> NÓS lemos o CSV (o modelo não executa nada)'
+	echo '  3) modelo responde   -> escreve a frase final'
+	curl -sS --fail-with-body -m 300 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"prompt":"Quantas unidades do Fone de ouvido Bluetooth existem em estoque?"}' \
+		{{BASE_URL}}/chat | jq
+
+# A ferramenta que sai para a internet -- é a MESMA da variante api/
+curl-feriados: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	echo 'Pergunta: "Quais são os feriados de 2026?"'
+	echo 'Desta vez a ferramenta escolhida sai para a BrasilAPI, de verdade.'
+	curl -sS --fail-with-body -m 300 \
+		-X POST -H 'Content-Type: application/json' \
+		-d '{"prompt":"Quais são os feriados de 2026?"}' \
+		{{BASE_URL}}/chat | jq '{resposta, usou_ferramenta, total_ms}'
+
+# ONDE ELE QUEBRA: chamar ferramenta quando não deveria
+curl-falhas: _servidor-vivo
+	#!/usr/bin/env bash
+	set -o pipefail
+	echo "=============================================================="
+	echo "O LFM2-350M acerta quando DEVE chamar. Veja o que ele faz"
+	echo "quando NÃO deveria chamar nada:"
+	echo "=============================================================="
+	for p in "Bom dia! Tudo bem?" "Obrigado, era só isso." "Me explique o que é um marketplace."; do
+		echo ""
+		echo "  Pergunta: $p"
+		curl -sS --fail-with-body -m 180 \
+			-X POST -H 'Content-Type: application/json' \
+			-d "$(jq -nc --arg p "$p" '{prompt:$p}')" \
+			{{BASE_URL}}/tool_call | jq -c '{pediu_ferramenta, chamadas}'
+	done
+	echo ""
+	echo "Ele aprendeu 'existe ferramenta, logo chame ferramenta' -- e chega a"
+	echo "INVENTAR um produto para poder chamar. Com 140M de parâmetros a mais,"
+	echo "o Qwen2.5-0.5B acerta os sete casos. Rode: just lfm2_tools bancada"
+
+# O esquema exato que vai para o modelo
+curl-tools: _servidor-vivo
+	@echo "O JSON Schema que o modelo lê para saber o que pode pedir:"
+	curl -sS --fail-with-body -m 60 \
+		-X POST -H 'Content-Type: application/json' -d '{}' \
+		{{BASE_URL}}/tools | jq '.ferramentas[].function | {name, description}'
