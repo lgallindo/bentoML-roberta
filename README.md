@@ -335,3 +335,7 @@ PORT=3001 just inventario serve    # vai para a 3001
 
 Vale ler os comentários dos arquivos: eles explicam não só o que o código faz,
 mas por que algumas decisões foram tomadas.
+
+## Licença
+
+Código: GPL-3.0-or-later. Recursos de terceiros (dados, imagens, documentos) mantêm suas licenças/termos originais; consulte as fontes.
